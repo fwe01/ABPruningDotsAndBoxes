@@ -8,7 +8,7 @@ class DotsAndBoxes:
     NUMBER_OF_DOTS = 4  # total amount of dots is n x n
     SYMBOL_SIZE = (BOARD_SIZE / 3 - BOARD_SIZE / 8) / 2
     SYMBOL_THICKNESS = 50
-    DOT_COLOR = '#000000'
+    DOT_COLOR = '#ffffff'
     PLAYER1_COLOR = '#04cf0b'
     PLAYER1_COLOR_LIGHT = '#88f28b'
     PLAYER2_COLOR = '#EE4035'
@@ -24,7 +24,7 @@ class DotsAndBoxes:
     def __init__(self):
         self.window = Tk()
         self.window.title('Dots_and_Boxes')
-        self.canvas = Canvas(self.window, width=self.BOARD_SIZE, height=self.BOARD_SIZE)
+        self.canvas = Canvas(self.window, background='black', width=self.BOARD_SIZE, height=self.BOARD_SIZE)
         self.canvas.pack()
         self.window.bind('<Button-1>', self.click)
 
