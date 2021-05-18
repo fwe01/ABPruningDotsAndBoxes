@@ -5,12 +5,12 @@ import numpy as np
 class DotsAndBoxes:
     # Some class constants that can be changed quickly
     BOARD_SIZE = 600
-    NUMBER_OF_DOTS = 6  # total amount of dots is n x n
+    NUMBER_OF_DOTS = 4  # total amount of dots is n x n
     SYMBOL_SIZE = (BOARD_SIZE / 3 - BOARD_SIZE / 8) / 2
     SYMBOL_THICKNESS = 50
-    DOT_COLOR = '#7BC043'
-    PLAYER1_COLOR = '#0492CF'
-    PLAYER1_COLOR_LIGHT = '#67B0CF'
+    DOT_COLOR = '#000000'
+    PLAYER1_COLOR = '#04cf0b'
+    PLAYER1_COLOR_LIGHT = '#88f28b'
     PLAYER2_COLOR = '#EE4035'
     PLAYER2_COLOR_LIGHT = '#EE7E77'
     THEME_COLOR = '#7BC043'
