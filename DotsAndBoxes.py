@@ -31,6 +31,7 @@ class DotsAndBoxes:
         self.player1_starts = True
         self.reset_board = False
         self.player1_turn = None
+        self.another_turn = False
         self.board_status = None
         self.row_status = None
         self.col_status = None
@@ -115,23 +116,29 @@ class DotsAndBoxes:
     def updateBoard(self, logical_pos, row_column_status):
         row = logical_pos[0]
         column = logical_pos[1]
-        val = 1
+        last_edge = 1
 
         if self.player1_turn:
-            val = -1
+            last_edge = -1
 
         if column < (self.NUMBER_OF_DOTS - 1) and row < (self.NUMBER_OF_DOTS - 1):
-            self.board_status[column][row] += val
+            self.board_status[column][row] = (abs(self.board_status[column][row]) + 1) * last_edge
+            if abs(self.board_status[column][row]) == 4:
+                self.another_turn = True
 
         if row_column_status == self.ROW:
             self.row_status[column][row] = 1
             if column >= 1:
-                self.board_status[column - 1][row] += val
+                self.board_status[column - 1][row] = (abs(self.board_status[column - 1][row]) + 1) * last_edge
+                if abs(self.board_status[column - 1][row]) == 4:
+                    self.another_turn = True
 
         elif row_column_status == self.COLUMN:
             self.col_status[column][row] = 1
             if row >= 1:
-                self.board_status[column][row - 1] += val
+                self.board_status[column][row - 1] = (abs(self.board_status[column][row - 1]) + 1) * last_edge
+                if abs(self.board_status[column][row - 1]) == 4:
+                    self.another_turn = True
 
     def makeEdge(self, logical_position, row_column_status):
         start_x = start_y = end_x = end_y = 0
@@ -233,7 +240,9 @@ class DotsAndBoxes:
                 self.makeEdge(logical_positon, valid_input)
                 self.markBox()
                 self.refreshBoard()
-                self.player1_turn = not self.player1_turn
+                if not self.another_turn:
+                    self.player1_turn = not self.player1_turn
+                self.another_turn = False
 
                 if self.isGameOverUtil():
                     # self.canvas.delete("all")
