@@ -20,7 +20,7 @@ class DotsAndBoxes:
     DOT_WIDTH = 0.25 * BOARD_SIZE / NUMBER_OF_DOTS
     EDGE_WIDTH = 0.1 * BOARD_SIZE / NUMBER_OF_DOTS
     DISTANCE_BETWEEN_DOTS = BOARD_SIZE / NUMBER_OF_DOTS
-    TREE_DEPTH = 10
+    TREE_DEPTH = 10000
     ROW = 'row'
     COLUMN = 'col'
 
@@ -269,10 +269,10 @@ class DotsAndBoxes:
 
         if player1_score > player2_score:
             # Player 1 wins
-            text = 'Player 1 Wins '
+            text = 'Player Wins '
             color = self.PLAYER1_COLOR
         elif player2_score > player1_score:
-            text = 'Player 2 Wins '
+            text = 'AI Wins '
             color = self.PLAYER2_COLOR
         else:
             text = 'Its a tie'
@@ -285,8 +285,8 @@ class DotsAndBoxes:
         self.canvas.create_text(self.BOARD_SIZE / 2, 5 * self.BOARD_SIZE / 8, font="cmr 40 bold", fill=self.THEME_COLOR,
                                 text=score_text)
 
-        score_text = 'Player 1 : ' + str(player1_score) + '\n'
-        score_text += 'Player 2 : ' + str(player2_score) + '\n'
+        score_text = 'Player : ' + str(player1_score) + '\n'
+        score_text += 'AI : ' + str(player2_score) + '\n'
         # score_text += 'Tie                    : ' + str(self.tie_score)
         self.canvas.create_text(self.BOARD_SIZE / 2, 3 * self.BOARD_SIZE / 4, font="cmr 30 bold", fill=self.THEME_COLOR,
                                 text=score_text)
@@ -315,10 +315,10 @@ class DotsAndBoxes:
     def showTurn(self):
         text = 'Next turn: '
         if self.player1_turn:
-            text += 'Player1'
+            text += 'Player'
             color = self.PLAYER1_COLOR
         else:
-            text += 'Player2'
+            text += 'AI'
             color = self.PLAYER2_COLOR
 
         self.canvas.delete(self.turntext_handle)
