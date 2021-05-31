@@ -122,23 +122,29 @@ class DotsAndBoxes:
     def updateBoard(self, logical_pos, row_column_status):
         row = logical_pos[0]
         column = logical_pos[1]
-        val = 1
+        last_edge = 1
 
         if self.player1_turn:
-            val = -1
+            last_edge = -1
 
         if column < (self.NUMBER_OF_DOTS - 1) and row < (self.NUMBER_OF_DOTS - 1):
-            self.board_status[column][row] += val
+            self.board_status[column][row] = (abs(self.board_status[column][row]) + 1) * last_edge
+            if abs(self.board_status[column][row]) == 4:
+                self.another_turn = True
 
         if row_column_status == self.ROW:
             self.row_status[column][row] = 1
             if column >= 1:
-                self.board_status[column - 1][row] += val
+                self.board_status[column - 1][row] = (abs(self.board_status[column - 1][row]) + 1) * last_edge
+                if abs(self.board_status[column - 1][row]) == 4:
+                    self.another_turn = True
 
         elif row_column_status == self.COLUMN:
             self.col_status[column][row] = 1
             if row >= 1:
-                self.board_status[column][row - 1] += val
+                self.board_status[column][row - 1] = (abs(self.board_status[column][row - 1]) + 1) * last_edge
+                if abs(self.board_status[column][row - 1]) == 4:
+                    self.another_turn = True
 
     def makeEdge(self, logical_position, row_column_status):
         start_x = start_y = end_x = end_y = 0
