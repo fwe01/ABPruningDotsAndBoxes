@@ -1,3 +1,5 @@
+from copy import deepcopy
+from Board import *
 from tkinter import *
 import numpy as np
 
@@ -18,6 +20,7 @@ class DotsAndBoxes:
     DOT_WIDTH = 0.25 * BOARD_SIZE / NUMBER_OF_DOTS
     EDGE_WIDTH = 0.1 * BOARD_SIZE / NUMBER_OF_DOTS
     DISTANCE_BETWEEN_DOTS = BOARD_SIZE / NUMBER_OF_DOTS
+    TREE_DEPTH = 2
     ROW = 'row'
     COLUMN = 'col'
 
@@ -27,6 +30,8 @@ class DotsAndBoxes:
         self.canvas = Canvas(self.window, background='black', width=self.BOARD_SIZE, height=self.BOARD_SIZE)
         self.canvas.pack()
         self.window.bind('<Button-1>', self.click)
+        self.ply = self.TREE_DEPTH
+        self.board = Board(self.NUMBER_OF_DOTS, self.NUMBER_OF_DOTS)
 
         self.player1_starts = True
         self.reset_board = False
@@ -92,6 +97,7 @@ class DotsAndBoxes:
             logical_pos = [r, c]
             row_column_status = self.COLUMN
 
+        print(r, c, row_column_status)
         return logical_pos, row_column_status
 
     def isGameOverUtil(self):
@@ -153,6 +159,108 @@ class DotsAndBoxes:
             color = self.PLAYER2_COLOR
 
         self.canvas.create_line(start_x, start_y, end_x, end_y, fill=color, width=self.EDGE_WIDTH)
+
+    '''
+       Fungsi untuk melakukan move dari ai player setelah human player melakukan move.
+       Fungsi ini memanggil minimax() untuk mengeksekusi algoritma alpha-beta pruning.
+       Hasil dari eksekusi alpha-beta pruning dipakai untuk menentukan move ai player.
+       '''
+
+    def ai_move(self):
+        # salin state board terkini untuk kalkulasi tree
+        state = deepcopy(self.board)
+        open_vectors = deepcopy(self.board.open_vectors)
+
+        # mengambil koordinat dari algoritma minimax
+        coordinates = self.minimax(state, open_vectors, self.ply, True)
+
+        self.board.move(coordinates[1], 1)
+
+        logical_position, valid_input = self.convVectorToLogicalPost(coordinates[1])
+        self.updateBoard(logical_position, valid_input)
+        self.makeEdge(logical_position, valid_input)
+        self.markBox()
+        self.refreshBoard()
+        self.player1_turn = not self.player1_turn
+
+
+
+    '''
+    Fungsi untuk mengeksekusi algoritma alpha-beta pruning.
+    Parameter:
+        state - state board terkini
+        open_vectors - himpunan vektor yang dapat dipilih dari state board terkini
+        ply - total depth dari game tree
+        max - nilai "True" merepresentasikan AI dan "False" merepresentasikan human player
+    Individual succesor state dibuat dalam main loop sebelum dilakukan pemanggilan algoritma alpha-beta pruning
+    secara rekursif untuk menjelajahi keturunan selanjutnya dalam game tree.
+    '''
+
+    def minimax(self, state, open_vectors, ply, max_min):
+        # nilai default dari best_move_val adalah -inf untuk layer Max dan +inf untuk layer Min
+        if max_min == True:
+            best_move_val = (-1000000, None)
+        else:
+            best_move_val = (1000000, None)
+
+        # jika successor sudah habis atau depth limit sudah tercapai
+        # maka evaluasi dan kembalikan nilai dari state terkini
+        if ply == 0 or len(open_vectors) == 0:
+            h = self.evaluation_function(state)
+            return (h, None)
+
+        # mendapatkan successor
+        for i in range(0, len(open_vectors)):
+            # mendapatkan koordinat dari successor state terkini
+            move = open_vectors.pop()
+
+            # melakukan deep copy dari state yang akan dijelajahi
+            state_copy = deepcopy(state)
+            open_vectors_copy = deepcopy(open_vectors)
+            state_copy.move(move, max_min)
+
+            # tambahkan koordinat kembali ke "open_vectors" untuk memastikan
+            # child state selanjutnya dalam depth terkini dapat menjelajahi sisa state dalam tree
+            open_vectors.appendleft(move)
+
+            # Alpha-Beta Pruning
+
+            # periksa nilai yang diperlukan (alpha di min node dan beta di max node) sebelum menjelajahi node children.
+            h = self.evaluation_function(state_copy)
+            if max_min == True:
+                if h >= state_copy.beta:
+                    return (h, move)
+                else:
+                    state_copy.alpha = max(state_copy.alpha, h)
+            else:
+                if h <= state_copy.alpha:
+                    return (h, move)
+                else:
+                    state_copy.beta = min(state_copy.beta, h)
+
+            # lakukan pemanggilan minimax() secara rekursif dengan child state
+            # goal state di-propagate kembali ke atas tree di akhir rekursi, saat depth limit tercapai atau open moves habis
+            next_move = self.minimax(state_copy, open_vectors_copy, ply - 1, not max_min)
+
+            # bandingkan skor dari child state dengan "best_move_val"
+            if max_min == True:
+                # pada max level, cari skor yang lebih besar dari skor maksimum terkini
+                if next_move[0] > best_move_val[0]:
+                    best_move_val = (next_move[0], move)
+            else:
+                # pada min level, cari skor yang lebih kecil dari skor minimum terkini
+                if next_move[0] < best_move_val[0]:
+                    best_move_val = (next_move[0], move)
+        return best_move_val
+
+    '''
+    Fungsi evaluasi untuk menghitung nilai heuristik dari state yang diberi.
+    Nilai heuristik dihitung dengan mengurangi skor total AI player dengan skor total human player.
+    '''
+
+    def evaluation_function(self, state):
+        h = state.ai_score - state.player_score
+        return h
 
     def displayGameOver(self):
         player1_score = len(np.argwhere(self.board_status == -4))
@@ -226,22 +334,63 @@ class DotsAndBoxes:
 
     def click(self, event):
         if not self.reset_board:
-            grid_position = [event.x, event.y]
-            logical_positon, valid_input = self.convGridToLogicalPosUtil(grid_position)
-            if valid_input and not self.isGridOccupiedUtil(logical_positon, valid_input):
-                self.updateBoard(logical_positon, valid_input)
-                self.makeEdge(logical_positon, valid_input)
-                self.markBox()
-                self.refreshBoard()
-                self.player1_turn = not self.player1_turn
+            if self.player1_turn:
+                grid_position = [event.x, event.y]
+                logical_position, valid_input = self.convGridToLogicalPosUtil(grid_position)
+                if valid_input and not self.isGridOccupiedUtil(logical_position, valid_input):
+                    integers = self.convLogicalPosToVector(logical_position, valid_input)
+                    coordinates = ((integers[0], integers[1]), (integers[2], integers[3]))
+                    self.board.move(coordinates, 0)
+                    self.updateBoard(logical_position, valid_input)
+                    self.makeEdge(logical_position, valid_input)
+                    self.markBox()
+                    self.refreshBoard()
+                    self.player1_turn = not self.player1_turn
+            else:
+                self.ai_move()
 
-                if self.isGameOverUtil():
-                    # self.canvas.delete("all")
-                    self.displayGameOver()
-                else:
-                    self.showTurn()
+            if self.isGameOverUtil():
+                # self.canvas.delete("all")
+                self.displayGameOver()
+            else:
+                self.showTurn()
         else:
             self.canvas.delete("all")
             self.restartGame()
             self.reset_board = False
 
+    def convLogicalPosToVector(self, logical_pos, row_column_status):
+        row = logical_pos[0]
+        col = logical_pos[1]
+        x1 = y1 = x2 = y2 = 0
+        if row_column_status == self.ROW:
+            x1 = row
+            y1 = col
+            x2 = x1 + 1
+            y2 = col
+        elif row_column_status == self.COLUMN:
+            x1 = row
+            y1 = col
+            x2 = row
+            y2 = y1 + 1
+
+        print(x1,y1,x2,y2)
+        return x1, y1, x2, y2
+
+    def convVectorToLogicalPost(self, coordinates):
+        row_column_status = None
+        x1 = coordinates[0][0]
+        y1 = coordinates[0][1]
+        x2 = coordinates[1][0]
+        y2 = coordinates[1][1]
+        print(x1, y1, x2, y2)
+        row = x1
+        col = y1
+        if x1 == x2:
+            row_column_status = self.COLUMN
+        elif y1 == y2:
+            row_column_status = self.ROW
+
+        logical_pos = [row, col]
+
+        return logical_pos, row_column_status
