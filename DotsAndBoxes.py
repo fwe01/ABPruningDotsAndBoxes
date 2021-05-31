@@ -16,11 +16,11 @@ class DotsAndBoxes:
     PLAYER2_COLOR = '#EE4035'
     PLAYER2_COLOR_LIGHT = '#EE7E77'
     THEME_COLOR = '#7BC043'
-    NEUTRAL_COLOR = '#111111'
+    NEUTRAL_COLOR = '#c2bfbe'
     DOT_WIDTH = 0.25 * BOARD_SIZE / NUMBER_OF_DOTS
     EDGE_WIDTH = 0.1 * BOARD_SIZE / NUMBER_OF_DOTS
     DISTANCE_BETWEEN_DOTS = BOARD_SIZE / NUMBER_OF_DOTS
-    TREE_DEPTH = 2
+    TREE_DEPTH = 10
     ROW = 'row'
     COLUMN = 'col'
 
@@ -30,8 +30,6 @@ class DotsAndBoxes:
         self.canvas = Canvas(self.window, background='black', width=self.BOARD_SIZE, height=self.BOARD_SIZE)
         self.canvas.pack()
         self.window.bind('<Button-1>', self.click)
-        self.ply = self.TREE_DEPTH
-        self.board = Board(self.NUMBER_OF_DOTS, self.NUMBER_OF_DOTS)
 
         self.player1_starts = True
         self.reset_board = False
@@ -39,6 +37,8 @@ class DotsAndBoxes:
         self.board_status = None
         self.row_status = None
         self.col_status = None
+        self.ply = None
+        self.board = None
         self.turntext_handle = []
         self.already_marked_boxes = []
 
@@ -53,6 +53,8 @@ class DotsAndBoxes:
         self.board_status = np.zeros(shape=(self.NUMBER_OF_DOTS - 1, self.NUMBER_OF_DOTS - 1))
         self.row_status = np.zeros(shape=(self.NUMBER_OF_DOTS, self.NUMBER_OF_DOTS - 1))
         self.col_status = np.zeros(shape=(self.NUMBER_OF_DOTS - 1, self.NUMBER_OF_DOTS))
+        self.ply = self.TREE_DEPTH
+        self.board = Board(self.NUMBER_OF_DOTS, self.NUMBER_OF_DOTS)
 
         # Input from user in form of clicks
         self.player1_starts = not self.player1_starts
@@ -97,7 +99,6 @@ class DotsAndBoxes:
             logical_pos = [r, c]
             row_column_status = self.COLUMN
 
-        print(r, c, row_column_status)
         return logical_pos, row_column_status
 
     def isGameOverUtil(self):
@@ -374,7 +375,6 @@ class DotsAndBoxes:
             x2 = row
             y2 = y1 + 1
 
-        print(x1,y1,x2,y2)
         return x1, y1, x2, y2
 
     def convVectorToLogicalPost(self, coordinates):
@@ -383,7 +383,6 @@ class DotsAndBoxes:
         y1 = coordinates[0][1]
         x2 = coordinates[1][0]
         y2 = coordinates[1][1]
-        print(x1, y1, x2, y2)
         row = x1
         col = y1
         if x1 == x2:

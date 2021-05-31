@@ -7,6 +7,8 @@ class Board:
     Constructor
     '''
     def __init__(self, column, row):
+        column = column - 1
+        row = row - 1
         # inisiasi skor pemain dan ai
         self.player_score = 0
         self.ai_score = 0
